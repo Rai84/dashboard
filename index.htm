@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CRUD Funcionários</title>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>👨‍💼 CRUD de Funcionários</h1>
+  </header>
+
+  <main class="container">
+    <!-- Formulário -->
+    <section class="panel">
+      <h2>Adicionar Funcionário</h2>
+      <form id="formAdd">
+        <input type="text" id="nome" placeholder="Nome do Funcionário" required />
+        <button type="submit">Adicionar</button>
+      </form>
+    </section>
+
+    <!-- Lista -->
+    <section class="panel">
+      <h2>Lista de Funcionários</h2>
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <small>Feito com Supabase</small>
+  </footer>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+</body>
+</html>
