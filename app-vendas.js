@@ -1,11 +1,3 @@
-const { createClient } = supabase;
-
-// 🔑 Troque pelas suas chaves
-const SUPABASE_URL = "https://fprppmxfxwrswlhsxeww.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwcnBwbXhmeHdyc3dsaHN4ZXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNzQ0OTMsImV4cCI6MjA3NDk1MDQ5M30.Wv918OkNZoFL6lAVkxX-IAxzibyA6qqnqFjZGqb0kSI";
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const formVenda = document.getElementById("formVenda");
 const selectFuncionario = document.getElementById("funcionario");
 const selectMes = document.getElementById("filtroMes");
@@ -19,18 +11,20 @@ const brl = (n) =>
     currency: "BRL",
   });
 
-// Carregar funcionários ativos no select
+// ================== FUNCIONÁRIOS ==================
 async function loadFuncionarios() {
   const { data, error } = await db
     .from("funcionarios")
     .select("*")
-    .eq("ativo", true);
+    .eq("ativo", true)
+    .eq("tipo", "vendedora");
+
   if (error) {
     console.error(error);
     return;
   }
 
-  selectFuncionario.innerHTML = "";
+  selectFuncionario.innerHTML = '<option value="">-- Selecione --</option>';
   data.forEach((f) => {
     const opt = document.createElement("option");
     opt.value = f.id;
@@ -39,25 +33,44 @@ async function loadFuncionarios() {
   });
 }
 
-// Adicionar venda
+// ================== ADICIONAR VENDA ==================
 formVenda.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const funcionario_id = selectFuncionario.value;
   const mes = document.getElementById("mes").value;
   const valor = Number(document.getElementById("valor").value);
+  const status = document.getElementById("status").value;
+  const operadora = document.getElementById("operadora").value;
 
-  if (!funcionario_id || !mes || !valor) return;
+  if (!funcionario_id || !mes || !valor || !status) {
+    alert("Preencha todos os campos obrigatórios!");
+    return;
+  }
 
-  await db.from("vendas").insert([{ funcionario_id, mes, valor }]);
+  const { error } = await db
+    .from("vendas")
+    .insert([{ funcionario_id, mes, valor, status, operadora }]);
+
+  if (error) {
+    console.error("Erro ao inserir venda:", error);
+    return;
+  }
+
   document.getElementById("valor").value = "";
+  document.getElementById("operadora").value = "";
+  document.getElementById("status").value = "negociado";
+
   loadRelatorio(selectMes.value);
 });
 
-// Carregar relatório
+// ================== RELATÓRIO ==================
 async function loadRelatorio(mes) {
   let query = db
     .from("vendas")
-    .select("valor, mes, funcionario_id, funcionarios(nome)")
+    .select(
+      "id, valor, mes, status, operadora, funcionario_id, funcionarios(nome)"
+    )
     .eq("funcionarios.ativo", true);
 
   if (mes !== "Todos") {
@@ -66,32 +79,61 @@ async function loadRelatorio(mes) {
 
   const { data, error } = await query;
   if (error) {
-    console.error(error);
+    console.error("Erro ao carregar relatório:", error);
     return;
   }
 
   const totais = {};
   let totalGeral = 0;
 
+  tabelaBody.innerHTML = "";
   data.forEach((v) => {
     totais[v.funcionarios.nome] =
       (totais[v.funcionarios.nome] || 0) + Number(v.valor);
     totalGeral += Number(v.valor);
-  });
 
-  tabelaBody.innerHTML = "";
-  for (const [nome, total] of Object.entries(totais)) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${nome}</td><td>${brl(total)}</td>`;
+    tr.innerHTML = `
+      <td>${v.funcionarios.nome}</td>
+      <td>${brl(v.valor)}</td>
+      <td>${v.mes}</td>
+      <td>${v.operadora || "-"}</td>
+      <td>${v.status}</td>
+      <td>
+        ${
+          v.status === "negociado"
+            ? `<button onclick="finalizarVenda(${v.id})">Finalizar</button>`
+            : "✔️"
+        }
+      </td>
+    `;
     tabelaBody.appendChild(tr);
-  }
+  });
 
   totalGeralEl.textContent = brl(totalGeral);
 }
 
-// Filtro de mês
+// ================== FINALIZAR VENDA ==================
+async function finalizarVenda(id) {
+  const { error } = await db
+    .from("vendas")
+    .update({ status: "finalizada" })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao finalizar venda:", error);
+    return;
+  }
+
+  loadRelatorio(selectMes.value);
+}
+
+// ================== FILTRO ==================
 selectMes.addEventListener("change", () => loadRelatorio(selectMes.value));
 
-// Inicialização
+// ================== INICIALIZAÇÃO ==================
 loadFuncionarios();
 loadRelatorio("Todos");
+
+// Expõe no escopo global
+window.finalizarVenda = finalizarVenda;

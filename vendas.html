@@ -3,31 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Controle de Vendas</title>
-
+  <title>📊 Vendas</title>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="config.js"></script>
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>📊 Controle de Vendas por Funcionário</h1>
+  <header class="bg-blue-900 text-white p-4 text-center">
+    <h1>📊 Controle de Vendas</h1>
     <nav>
       <a href="index.html">👨‍💼 Funcionários</a> |
-      <a href="vendas.html">📊 Vendas</a>
+      <a href="vendas.html">📊 Vendas</a> |
+      <a href="dashboard.html">📈 Dashboard</a>
     </nav>
   </header>
 
-  
-
   <main class="container">
-    <!-- Adicionar venda -->
+    <!-- Registrar venda -->
     <section class="panel">
       <h2>Registrar Venda</h2>
-      <form id="formVenda">
+      <form id="formVenda" class="form-grid">
+        <!-- Funcionário -->
+        <label for="funcionario">Funcionário:</label>
         <select id="funcionario" required>
           <option value="">-- Selecione o funcionário --</option>
         </select>
+
+        <!-- Mês -->
+        <label for="mes">Mês:</label>
         <select id="mes" required>
           <option>Janeiro</option>
           <option>Fevereiro</option>
@@ -42,14 +47,30 @@
           <option>Novembro</option>
           <option>Dezembro</option>
         </select>
+
+        <!-- Valor -->
+        <label for="valor">Valor:</label>
         <input type="number" id="valor" placeholder="Valor da venda" required />
-        <button type="submit">Adicionar</button>
+
+        <!-- Status -->
+        <label for="status">Status:</label>
+        <select id="status" required>
+          <option value="negociado">Negociado</option>
+          <option value="finalizada">Finalizada</option>
+        </select>
+
+        <!-- Operadora -->
+        <label for="operadora">Operadora:</label>
+        <input type="text" id="operadora" placeholder="Ex: Vivo, Claro, TIM" />
+
+        <button type="submit">➕ Adicionar</button>
       </form>
     </section>
 
     <!-- Relatório -->
     <section class="panel">
       <h2>Relatório de Vendas</h2>
+
       <label for="filtroMes">Filtrar por mês:</label>
       <select id="filtroMes">
         <option value="Todos">Todos</option>
@@ -68,24 +89,28 @@
       </select>
 
       <table id="tabelaVendas">
-        <thead>
-          <tr>
-            <th>Funcionário</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr>
-            <td><b>Total Geral</b></td>
-            <td id="totalGeral"></td>
-          </tr>
-        </tfoot>
-      </table>
+  <thead>
+    <tr>
+      <th>Funcionário</th>
+      <th>Valor</th>
+      <th>Mês</th>
+      <th>Operadora</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr>
+      <td colspan="6"><b>Total Geral</b>: <span id="totalGeral"></span></td>
+    </tr>
+  </tfoot>
+</table>
+
     </section>
   </main>
 
-
+  <!-- Script -->
   <script src="app-vendas.js"></script>
 </body>
 </html>

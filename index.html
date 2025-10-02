@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CRUD Funcionários</title>
+  <title>Dashboard</title>
 
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
+  <script src="config.js"></script>
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
+  <header class="bg-blue-900 text-white p-4 text-center">
     <h1>👨‍💼 CRUD de Funcionários</h1>
+    <nav>
+      <a href="index.html">👨‍💼 Funcionários</a> |
+      <a href="vendas.html">📊 Vendas</a>
+      <a href="dashboard.html">📈 Dashboard</a>
+    </nav>
   </header>
 
   <main class="container">
@@ -22,6 +27,11 @@
       <h2>Adicionar Funcionário</h2>
       <form id="formAdd">
         <input type="text" id="nome" placeholder="Nome do Funcionário" required />
+        <select id="tipo" required>
+          <option value="">-- Selecione o tipo --</option>
+          <option value="vendedora">Vendedora</option>
+          <option value="proposta">Proposta</option>
+        </select>
         <button type="submit">Adicionar</button>
       </form>
     </section>
@@ -34,6 +44,7 @@
           <tr>
             <th>ID</th>
             <th>Nome</th>
+            <th>Tipo</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
@@ -42,8 +53,6 @@
       </table>
     </section>
   </main>
-
-  <a href="vendas.html">📊 Vendas</a>
 
   <!-- JS -->
   <script src="app.js"></script>

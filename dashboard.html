@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard de Vendas</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css.css">
+</head>
+<body>
+  <header>
+    <h1>📊 Dashboard de Vendas</h1>
+    <nav>
+      <a href="index.html">👨‍💼 Funcionários</a> |
+      <a href="vendas.html">📊 Vendas</a> |
+      <a href="dashboard.html">📈 Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- KPIs -->
+    <section class="cards">
+      <div class="card"><h3>Valores Negociados</h3><p id="valNegociados">R$ 0</p></div>
+      <div class="card"><h3>Vendas Finalizadas</h3><p id="vendasFinalizadas">0</p></div>
+      <div class="card"><h3>Valores Finalizados</h3><p id="valFinalizados">R$ 0</p></div>
+      <div class="card"><h3>Conversão</h3><p id="conversao">0%</p></div>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="charts">
+      <div class="chart-card">
+        <h3>Tendência Mensal</h3>
+        <canvas id="tendenciaChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Meta x Realizado</h3>
+        <canvas id="metaChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Ticket Médio por Vendedor</h3>
+        <canvas id="ticketChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Ranking -->
+    <section class="panel">
+      <h3>🏆 Ranking de Vendedores</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Posição</th>
+            <th>Vendedor</th>
+            <th>Total</th>
+            <th>Ticket Médio</th>
+          </tr>
+        </thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <small>Feito com Supabase + Chart.js</small>
+  </footer>
+
+  <!-- Script -->
+  <script src="app-dashboard.js"></script>
+</body>
+</html>
