@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Controle de Vendas</title>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>📊 Controle de Vendas por Funcionário</h1>
+    <nav>
+      <a href="index.htm">👨‍💼 Funcionários</a> |
+      <a href="vendas.html">📊 Vendas</a>
+    </nav>
+  </header>
+
+  
+
+  <main class="container">
+    <!-- Adicionar venda -->
+    <section class="panel">
+      <h2>Registrar Venda</h2>
+      <form id="formVenda">
+        <select id="funcionario" required>
+          <option value="">-- Selecione o funcionário --</option>
+        </select>
+        <select id="mes" required>
+          <option>Janeiro</option>
+          <option>Fevereiro</option>
+          <option>Março</option>
+          <option>Abril</option>
+          <option>Maio</option>
+          <option>Junho</option>
+          <option>Julho</option>
+          <option>Agosto</option>
+          <option>Setembro</option>
+          <option>Outubro</option>
+          <option>Novembro</option>
+          <option>Dezembro</option>
+        </select>
+        <input type="number" id="valor" placeholder="Valor da venda" required />
+        <button type="submit">Adicionar</button>
+      </form>
+    </section>
+
+    <!-- Relatório -->
+    <section class="panel">
+      <h2>Relatório de Vendas</h2>
+      <label for="filtroMes">Filtrar por mês:</label>
+      <select id="filtroMes">
+        <option value="Todos">Todos</option>
+        <option>Janeiro</option>
+        <option>Fevereiro</option>
+        <option>Março</option>
+        <option>Abril</option>
+        <option>Maio</option>
+        <option>Junho</option>
+        <option>Julho</option>
+        <option>Agosto</option>
+        <option>Setembro</option>
+        <option>Outubro</option>
+        <option>Novembro</option>
+        <option>Dezembro</option>
+      </select>
+
+      <table id="tabelaVendas">
+        <thead>
+          <tr>
+            <th>Funcionário</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td><b>Total Geral</b></td>
+            <td id="totalGeral"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+  </main>
+
+
+  <script src="app-vendas.js"></script>
+</body>
+</html>
