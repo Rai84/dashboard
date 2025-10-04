@@ -72,6 +72,9 @@ async function loadTendencia() {
 }
 
 // ============= Meta x Realizado =============
+let metaChart; // variável global para recriar o gráfico
+
+// Meta x Realizado
 async function loadMeta(meta = 15000) {
   const { data, error } = await db
     .from("vendas")
@@ -84,7 +87,12 @@ async function loadMeta(meta = 15000) {
 
   const totalRealizado = data.reduce((acc, v) => acc + Number(v.valor), 0);
 
-  new Chart(document.getElementById("metaChart"), {
+  // se já existir gráfico, destrói antes de recriar
+  if (metaChart) {
+    metaChart.destroy();
+  }
+
+  metaChart = new Chart(document.getElementById("metaChart"), {
     type: "bar",
     data: {
       labels: ["Meta", "Realizado"],
@@ -99,6 +107,13 @@ async function loadMeta(meta = 15000) {
     options: { indexAxis: "y" },
   });
 }
+
+// Evento do botão
+document.getElementById("btnAtualizarMeta").addEventListener("click", () => {
+  const novaMeta = Number(document.getElementById("metaInput").value) || 0;
+  loadMeta(novaMeta);
+});
+
 
 // ============= Ticket Médio por Vendedor =============
 async function loadTicketMedio() {

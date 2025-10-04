@@ -12,15 +12,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <h1>📊 Dashboard de Vendas</h1>
     <nav>
-      <a href="index.html">👨‍💼 Funcionários</a> |
-      <a href="vendas.html">📊 Vendas</a> |
-      <a href="dashboard.html">📈 Dashboard</a>
+      <a href="index.html" class="btn_header">👨‍💼 Funcionários</a> |
+      <a href="vendas.html" class="btn_header">📊 Vendas</a> |
+      <a href="dashboard.html" class="btn_header">📈 Dashboard</a>
     </nav>
   </header>
 
@@ -41,6 +41,13 @@
       </div>
       <div class="chart-card">
         <h3>Meta x Realizado</h3>
+
+        <div style="margin-bottom:10px;">
+            <label for="metaInput">Meta do mês (R$): </label>
+            <input type="number" id="metaInput" value="15000" min="0" />
+            <button id="btnAtualizarMeta">Atualizar</button>
+        </div>
+
         <canvas id="metaChart"></canvas>
       </div>
       <div class="chart-card">
