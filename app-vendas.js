@@ -222,12 +222,90 @@ async function deletarVenda(id) {
   loadRelatorio(selectMes.value);
 }
 
+// ================= FUNCIONÁRIAS DE PROPOSTA =================
+async function loadPropostas() {
+  const { data, error } = await db
+    .from("proposta_funcionarios")
+    .select("id, quantidade, meta, funcionario_id, funcionarios!inner(nome, tipo)")
+    .eq("funcionarios.tipo", "proposta")
+    .order("id", { ascending: true });
+
+    
+
+  if (error) {
+    console.error("Erro ao carregar proposta:", error);
+    return;
+  }
+
+  const tbody = document.getElementById("propostasBody");
+  tbody.innerHTML = "";
+
+  data.forEach((p) => {
+    const progresso = Math.min((p.quantidade / p.meta) * 100, 100).toFixed(1);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.funcionarios.nome}</td>
+      <td>${p.quantidade}</td>
+      <td>${p.meta}</td>
+      <td>
+        <div style="background:#ddd; border-radius:6px; height:12px; width:100px;">
+          <div style="width:${progresso}%; height:12px; background:${
+      progresso >= 100 ? "#10b981" : "#3b82f6"
+    }; border-radius:6px;"></div>
+        </div>
+      </td>
+      <td><button onclick="alterarProposta(${p.id}, 1)">+</button></td>
+      <td><button onclick="alterarProposta(${p.id}, -1)">-</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ================= ALTERAR PROPOSTA (+ / -) =================
+
+async function alterarProposta(id, delta) {
+  const { data, error } = await db
+    .from("proposta_funcionarios")
+    .select("quantidade, meta")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar proposta:", error);
+    return;
+  }
+
+  let novaQtd = data.quantidade + delta;
+  if (novaQtd < 0) novaQtd = 0;
+
+  const { error: updateError } = await db
+    .from("proposta_funcionarios")
+    .update({ quantidade: novaQtd, atualizado_em: new Date() })
+    .eq("id", id);
+
+  if (updateError) {
+    console.error("Erro ao atualizar proposta:", updateError);
+    return;
+  }
+
+  if (novaQtd === data.meta && delta > 0) {
+    alert("🎉 Meta de propostas atingida! Parabéns!");
+  }
+
+  loadPropostas(); // recarrega tabela
+}
+
+window.alterarProposta = alterarProposta;
+
+
+
 // ================== FILTRO ==================
 selectMes.addEventListener("change", () => loadRelatorio(selectMes.value));
 
 // ================== INICIALIZAÇÃO ==================
 loadFuncionarios();
 loadRelatorio("Todos");
+loadPropostas();
 
 // Tornar funções globais
 window.finalizarVenda = finalizarVenda;

@@ -12,14 +12,26 @@ async function loadKPIs() {
     .from("vendas")
     .select("valor")
     .eq("status", "negociado");
+
   const { data: finalizadas } = await db
     .from("vendas")
     .select("valor")
     .eq("status", "finalizada");
 
+  // Atenção: confirme se o status no BD é "em analise", "em análise" ou "em_analise"
+  const { data: emAbertas } = await db
+    .from("vendas")
+    .select("valor")
+    .eq("status", "em analise");
+
   const totalNegociados =
     negociadas?.reduce((acc, v) => acc + Number(v.valor), 0) || 0;
+
+  const totalEmAberto =
+    emAbertas?.reduce((acc, v) => acc + Number(v.valor), 0) || 0;
+
   const qtdFinalizadas = finalizadas?.length || 0;
+
   const totalFinalizados =
     finalizadas?.reduce((acc, v) => acc + Number(v.valor), 0) || 0;
 
@@ -30,10 +42,17 @@ async function loadKPIs() {
   document.getElementById(
     "valNegociados"
   ).textContent = `R$ ${totalNegociados.toLocaleString()}`;
+
+  document.getElementById(
+    "valEmAberto"
+  ).textContent = `R$ ${totalEmAberto.toLocaleString()}`;
+
   document.getElementById("vendasFinalizadas").textContent = qtdFinalizadas;
+
   document.getElementById(
     "valFinalizados"
   ).textContent = `R$ ${totalFinalizados.toLocaleString()}`;
+
   document.getElementById("conversao").textContent = `${conversao}%`;
 
   return totalFinalizados;
@@ -78,18 +97,23 @@ let metaChart;
 async function getMeta() {
   const { data, error } = await db
     .from("meta")
-    .select("id, valor")
+    .select("id, valor, super_meta")
     .limit(1)
     .single();
   if (error) {
     console.error("Erro ao buscar meta:", error);
-    return { id: null, valor: 15000 }; // fallback
+    return { id: null, valor: 15000, super_meta: 30000 }; // fallback
+  }
+  if (!data || data.length === 0) {
+    console.warn("Nenhuma meta encontrada, usando valor padrão.");
+    await db.from("meta").insert([{ valor: 15000, super_meta: 30000 }]);
+    return { id: null, valor: 15000, super_meta: 30000 };
   }
   return data;
 }
 
 // 🔹 Atualizar meta no banco
-async function updateMeta(novoValor) {
+async function updateMeta(novoValor, novoSuperMeta) {
   const { data: existente, error: erroBusca } = await db
     .from("meta")
     .select("id")
@@ -104,10 +128,16 @@ async function updateMeta(novoValor) {
   if (existente) {
     await db
       .from("meta")
-      .update({ valor: novoValor, atualizado_em: new Date() })
+      .update({
+        valor: novoValor,
+        super_meta: novoSuperMeta,
+        atualizado_em: new Date(),
+      })
       .eq("id", existente.id);
   } else {
-    await db.from("meta").insert([{ valor: novoValor }]);
+    await db
+      .from("meta")
+      .insert([{ valor: novoValor, super_meta: novoSuperMeta }]);
   }
 }
 
@@ -115,6 +145,7 @@ async function updateMeta(novoValor) {
 async function loadMeta() {
   const metaData = await getMeta();
   const meta = metaData?.valor || 15000;
+  const superMeta = metaData?.super_meta || 30000;
 
   const { data, error } = await db
     .from("vendas")
@@ -135,12 +166,12 @@ async function loadMeta() {
   metaChart = new Chart(document.getElementById("metaChart"), {
     type: "bar",
     data: {
-      labels: ["Meta", "Realizado"],
+      labels: ["Super Meta", "Meta", "Realizado"],
       datasets: [
         {
           label: "R$",
-          data: [meta, totalRealizado],
-          backgroundColor: ["#888", "#10b981"],
+          data: [superMeta, meta, totalRealizado],
+          backgroundColor: ["#888", "#f59e0b", "#10b981"],
         },
       ],
     },
@@ -148,6 +179,7 @@ async function loadMeta() {
   });
 
   document.getElementById("metaInput").value = meta;
+  document.getElementById("superMetaInput").value = superMeta;
 }
 
 // 🔹 Botão para atualizar meta
@@ -155,7 +187,9 @@ document
   .getElementById("btnAtualizarMeta")
   .addEventListener("click", async () => {
     const novaMeta = Number(document.getElementById("metaInput").value) || 0;
-    await updateMeta(novaMeta);
+    const novaSuperMeta =
+      Number(document.getElementById("superMetaInput").value) || 0;
+    await updateMeta(novaMeta, novaSuperMeta);
     await loadMeta();
     alert("Meta atualizada com sucesso!");
   });
@@ -164,25 +198,28 @@ document
 async function loadTicketMedio() {
   const { data, error } = await db
     .from("vendas")
-    .select("valor, funcionario_id, funcionarios(nome)")
-    .eq("status", "finalizada");
+    // Inner join garante que `v.funcionarios` nunca será null
+    .select("valor, funcionario_id, funcionarios!inner(id, nome, ativo)")
+    .eq("status", "finalizada")
+    .eq("funcionarios.ativo", true);
 
   if (error) {
-    console.error(error);
+    console.error("Erro no loadTicketMedio:", error);
     return;
   }
 
   const vendedores = {};
-  data.forEach((v) => {
-    const nome = v.funcionarios.nome;
+  for (const v of data || []) {
+    const nome = v.funcionarios?.nome;
+    if (!nome) continue; // segurança extra
     if (!vendedores[nome]) vendedores[nome] = { soma: 0, qtd: 0 };
-    vendedores[nome].soma += Number(v.valor);
+    vendedores[nome].soma += Number(v.valor) || 0;
     vendedores[nome].qtd++;
-  });
+  }
 
   const labels = Object.keys(vendedores);
   const medias = labels.map(
-    (nome) => vendedores[nome].soma / vendedores[nome].qtd
+    (nome) => vendedores[nome].soma / vendedores[nome].qtd || 0
   );
 
   new Chart(document.getElementById("ticketChart"), {
@@ -200,31 +237,85 @@ async function loadTicketMedio() {
   });
 }
 
+// ================== PAINEL DE PROPOSTAS (VISUALIZAÇÃO) ==================
+async function loadPropostasDashboard() {
+  const { data, error } = await db
+    .from("proposta_funcionarios")
+    .select("id, quantidade, meta, funcionario_id, funcionarios!inner(nome, tipo)")
+    .eq("funcionarios.tipo", "proposta");
+
+  if (error) {
+    console.error("Erro ao carregar propostas:", error);
+    return;
+  }
+
+  const tbody = document.getElementById("propostasDashboardBody");
+  tbody.innerHTML = "";
+
+  let totalFeitas = 0;
+  let totalMeta = 0;
+
+  data.forEach((p) => {
+    const progresso = Math.min((p.quantidade / p.meta) * 100, 100).toFixed(1);
+    totalFeitas += p.quantidade;
+    totalMeta += p.meta;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.funcionarios.nome}</td>
+      <td>${p.quantidade}</td>
+      <td>${p.meta}</td>
+      <td>
+        <div style="background:#ddd; border-radius:6px; height:12px; width:100px; margin:auto;">
+          <div style="width:${progresso}%; height:12px; background:${
+      progresso >= 100 ? "#10b981" : "#3b82f6"
+    }; border-radius:6px;"></div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Total geral no rodapé
+  const totalTr = document.createElement("tr");
+  totalTr.innerHTML = `
+    <td style="font-weight:bold;">TOTAL</td>
+    <td style="font-weight:bold;">${totalFeitas}</td>
+    <td style="font-weight:bold;">${totalMeta}</td>
+    <td>
+      <strong>${((totalFeitas / totalMeta) * 100).toFixed(1)}%</strong>
+    </td>
+  `;
+  tbody.appendChild(totalTr);
+}
+
 // ================= Ranking de Vendedores =================
 async function loadRanking() {
   const { data, error } = await db
     .from("vendas")
-    .select("valor, funcionario_id, funcionarios(nome)")
-    .eq("status", "finalizada");
+    .select("valor, funcionario_id, funcionarios!inner(id, nome, ativo)")
+    .eq("status", "finalizada")
+    .eq("funcionarios.ativo", true);
 
   if (error) {
-    console.error(error);
+    console.error("Erro no loadRanking:", error);
     return;
   }
 
   const totais = {};
   const qtd = {};
-  data.forEach((v) => {
-    const nome = v.funcionarios.nome;
-    totais[nome] = (totais[nome] || 0) + Number(v.valor);
+  for (const v of data || []) {
+    const nome = v.funcionarios?.nome;
+    if (!nome) continue; // segurança extra
+    totais[nome] = (totais[nome] || 0) + Number(v.valor || 0);
     qtd[nome] = (qtd[nome] || 0) + 1;
-  });
+  }
 
   const ranking = Object.entries(totais)
     .map(([nome, total]) => ({
       nome,
       total,
-      ticket: total / qtd[nome],
+      ticket: total / (qtd[nome] || 1),
     }))
     .sort((a, b) => b.total - a.total);
 
@@ -250,4 +341,5 @@ async function loadRanking() {
   await loadMeta(); // agora puxa direto do banco
   await loadTicketMedio();
   await loadRanking();
+  await loadPropostasDashboard();
 })();

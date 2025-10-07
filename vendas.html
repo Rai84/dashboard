@@ -9,6 +9,7 @@
   <script src="config.js"></script>
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
+  <!-- <link rel="stylesheet" href="reset.css" /> -->
 </head>
 <body>
   <header>
@@ -64,8 +65,27 @@
         <label for="operadora">Operadora:</label>
         <input type="text" id="operadora" placeholder="" />
 
-        <button type="submit">➕ Adicionar</button>
       </form>
+      
+    </section>
+
+    <!-- ================= FUNCIONÁRIAS DE PROPOSTAS ================= -->
+    <section class="panel">
+      <h3>💬 Controle de Propostas</h3>
+        <table style="border-collapse: collapse; width: 100%; text-align: center;">
+          <thead>
+            <tr style="position: static; left: 0;">
+              <th>Funcionário</th>
+              <th>Propostas</th>
+              <th>Meta</th>
+              <th>Progresso</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+        <tbody id="propostasBody">
+
+        </tbody>
+        </table>
     </section>
 
     <!-- Relatório -->

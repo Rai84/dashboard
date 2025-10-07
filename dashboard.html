@@ -19,8 +19,8 @@
     <h1>📊 Dashboard de Vendas</h1>
     <nav>
       <a href="index.html" class="btn_header">👨‍💼 Funcionários</a> |
-      <a href="vendas.html" class="btn_header">📊 Vendas</a> |
-      <a href="dashboard.html" class="btn_header">📈 Dashboard</a>
+      <a href="vendas.html" class="btn_header">📋 Vendas</a> |
+      <a href="dashboard.html" class="btn_header active">📈 Dashboard</a>
     </nav>
   </header>
 
@@ -28,6 +28,7 @@
     <!-- KPIs -->
     <section class="cards">
       <div class="card"><h3>Valores Negociados</h3><p id="valNegociados">R$ 0</p></div>
+      <div class="card"><h3>Valores em Aberto</h3><p id="valEmAberto">R$ 0</p></div>
       <div class="card"><h3>Vendas Finalizadas</h3><p id="vendasFinalizadas">0</p></div>
       <div class="card"><h3>Valores Finalizados</h3><p id="valFinalizados">R$ 0</p></div>
       <div class="card"><h3>Conversão</h3><p id="conversao">0%</p></div>
@@ -35,26 +36,54 @@
 
     <!-- Gráficos -->
     <section class="charts">
+      <!-- Tendência -->
       <div class="chart-card">
-        <h3>Tendência Mensal</h3>
+        <h3>📅 Tendência Mensal</h3>
         <canvas id="tendenciaChart"></canvas>
       </div>
-      <div class="chart-card">
-        <h3>Meta x Realizado</h3>
 
-        <div style="margin-bottom:10px;">
-            <label for="metaInput">Meta do mês (R$): </label>
-            <input type="number" id="metaInput" value="15000" min="0" />
-            <button id="btnAtualizarMeta">Atualizar</button>
+      <!-- Meta -->
+      <div class="chart-card">
+        <h3>🎯 Meta x Realizado</h3>
+        <div style="margin-bottom:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;flex-direction: column; ">
+
+          <div>
+            <label for="metaInput">Meta (R$): </label>
+            <input type="number" id="metaInput" value="15000" min="0" style="width:100px;"/>
+          </div>
+          <div>
+            <label for="superMetaInput">Super Meta (R$): </label>
+            <input type="number" id="superMetaInput" value="30000" min="0" style="width:100px;"/>
+          </div>
+          <button id="btnAtualizarMeta" class="btn_update">Atualizar Metas</button>
         </div>
 
         <canvas id="metaChart"></canvas>
       </div>
+
+      <!-- Ticket Médio -->
       <div class="chart-card">
-        <h3>Ticket Médio por Vendedor</h3>
+        <h3>🎟️ Ticket Médio por Vendedor</h3>
         <canvas id="ticketChart"></canvas>
       </div>
     </section>
+
+    <!-- ================= PAINEL DE PROPOSTAS ================= -->
+<section class="panel">
+  <h3>💬 Desempenho de Propostas</h3>
+  <table style="width:100%; text-align:center; border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f3f4f6;">
+        <th>Funcionária</th>
+        <th>Qtd</th>
+        <th>Meta</th>
+        <th>Progresso</th>
+      </tr>
+    </thead>
+    <tbody id="propostasDashboardBody"></tbody>
+  </table>
+</section>
+
 
     <!-- Ranking -->
     <section class="panel">
@@ -74,7 +103,7 @@
   </main>
 
   <footer>
-    <small>Feito com Supabase + Chart.js</small>
+    <small>Feito com ❤️ usando Supabase + Chart.js</small>
   </footer>
 
   <!-- Script -->
