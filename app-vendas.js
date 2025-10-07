@@ -4,7 +4,7 @@ const selectMes = document.getElementById("filtroMes");
 const tabelaBody = document.querySelector("#tabelaVendas tbody");
 const totalGeralEl = document.getElementById("totalGeral");
 
-// Formatar moeda BRL
+// ================== FORMATAR MOEDA ==================
 const brl = (n) =>
   (Number(n) || 0).toLocaleString("pt-BR", {
     style: "currency",
@@ -83,14 +83,26 @@ async function loadRelatorio(mes) {
     return;
   }
 
-  const totais = {};
+  tabelaBody.innerHTML = "";
   let totalGeral = 0;
 
-  tabelaBody.innerHTML = "";
   data.forEach((v) => {
-    totais[v.funcionarios.nome] =
-      (totais[v.funcionarios.nome] || 0) + Number(v.valor);
     totalGeral += Number(v.valor);
+
+    let botoesStatus = "";
+    if (v.status === "negociado") {
+      botoesStatus = `
+        <button onclick="vendaEmAnalise(${v.id})">Em Análise</button>
+        <button onclick="finalizarVenda(${v.id})">Finalizar</button>
+      `;
+    } else if (v.status === "em analise") {
+      botoesStatus = `
+        <button onclick="finalizarVenda(${v.id})">Aprovar</button>
+        <button onclick="voltarNegociado(${v.id})">Voltar p/ Negociado</button>
+      `;
+    } else if (v.status === "finalizada") {
+      botoesStatus = `<button onclick="voltarNegociado(${v.id})">Reabrir</button>`;
+    }
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -100,11 +112,13 @@ async function loadRelatorio(mes) {
       <td>${v.operadora || "-"}</td>
       <td>${v.status}</td>
       <td>
-        ${
-          v.status === "negociado"
-            ? `<button onclick="finalizarVenda(${v.id})">Finalizar</button>`
-            : "✔️"
-        }
+        ${botoesStatus}
+        <button onclick="editarVenda(${v.id}, '${v.funcionarios.nome}', ${
+      v.valor
+    }, '${v.mes}', '${v.operadora || ""}')">Editar</button>
+        <button onclick="deletarVenda(${
+          v.id
+        })" style="color:red;">Excluir</button>
       </td>
     `;
     tabelaBody.appendChild(tr);
@@ -113,18 +127,98 @@ async function loadRelatorio(mes) {
   totalGeralEl.textContent = brl(totalGeral);
 }
 
-// ================== FINALIZAR VENDA ==================
-async function finalizarVenda(id) {
+// ================== ATUALIZA STATUS ==================
+async function atualizarStatus(id, novoStatus) {
   const { error } = await db
     .from("vendas")
-    .update({ status: "finalizada" })
+    .update({ status: novoStatus })
     .eq("id", id);
 
   if (error) {
-    console.error("Erro ao finalizar venda:", error);
+    console.error(`Erro ao atualizar status para ${novoStatus}:`, error);
     return;
   }
 
+  loadRelatorio(selectMes.value);
+}
+
+// ================== AÇÕES DE STATUS ==================
+function finalizarVenda(id) {
+  atualizarStatus(id, "finalizada");
+}
+
+function vendaEmAnalise(id) {
+  atualizarStatus(id, "em analise");
+}
+
+function voltarNegociado(id) {
+  atualizarStatus(id, "negociado");
+}
+
+// ================== EDITAR VENDA ==================
+async function editarVenda(
+  id,
+  nomeFuncionario,
+  valorAtual,
+  mesAtual,
+  operadoraAtual
+) {
+  const novoValor = prompt("Novo valor:", valorAtual);
+  if (novoValor === null) return;
+
+  const novoMes = prompt("Novo mês:", mesAtual);
+  if (novoMes === null) return;
+
+  const novaOperadora = prompt("Nova operadora:", operadoraAtual);
+  if (novaOperadora === null) return;
+
+  // Selecionar novo funcionário (opcional)
+  const funcionarios = await db
+    .from("funcionarios")
+    .select("id, nome")
+    .eq("ativo", true);
+  if (funcionarios.error) {
+    console.error(funcionarios.error);
+    return;
+  }
+
+  const lista = funcionarios.data.map((f) => `${f.id} - ${f.nome}`).join("\n");
+  const novoFuncionarioId = prompt(
+    `Novo funcionário (ID atual: ${nomeFuncionario})\n${lista}\nDigite o ID:`
+  );
+  if (novoFuncionarioId === null) return;
+
+  const { error } = await db
+    .from("vendas")
+    .update({
+      valor: Number(novoValor),
+      mes: novoMes,
+      operadora: novaOperadora,
+      funcionario_id: novoFuncionarioId || null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao editar venda:", error);
+    return;
+  }
+
+  alert("Venda atualizada com sucesso!");
+  loadRelatorio(selectMes.value);
+}
+
+// ================== DELETAR VENDA ==================
+async function deletarVenda(id) {
+  if (!confirm("Tem certeza que deseja excluir esta venda?")) return;
+
+  const { error } = await db.from("vendas").delete().eq("id", id);
+
+  if (error) {
+    console.error("Erro ao excluir venda:", error);
+    return;
+  }
+
+  alert("Venda excluída com sucesso!");
   loadRelatorio(selectMes.value);
 }
 
@@ -135,5 +229,9 @@ selectMes.addEventListener("change", () => loadRelatorio(selectMes.value));
 loadFuncionarios();
 loadRelatorio("Todos");
 
-// Expõe no escopo global
+// Tornar funções globais
 window.finalizarVenda = finalizarVenda;
+window.vendaEmAnalise = vendaEmAnalise;
+window.voltarNegociado = voltarNegociado;
+window.editarVenda = editarVenda;
+window.deletarVenda = deletarVenda;

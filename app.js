@@ -59,6 +59,7 @@ async function loadFuncionarios() {
       }" onclick="toggleAtivo(${f.id}, ${f.ativo})">
         ${f.ativo ? "Desativar" : "Ativar"}
       </button>
+      <button class="acao deletar" onclick="deleteFuncionario(${f.id})">Deletar</button>
     </td>
   `;
     tabelaBody.appendChild(tr);
@@ -122,6 +123,12 @@ function editarFuncionario(id) {
       await salvarEdicao(id, inputNome.value.trim(), selectTipo.value);
     });
   }
+}
+
+async function deleteFuncionario(id) {
+  const { error } = await db.from("funcionarios").delete().eq("id", id);
+  if (error) console.error("Erro ao deletar:", error);
+  loadFuncionarios();
 }
 
 async function salvarEdicao(id, novoNome, novoTipo) {

@@ -1,12 +1,12 @@
 const { createClient } = supabase;
 
-// 🔑 Substitua pelas suas credenciais do Supabase
+// 🔑 Credenciais do Supabase
 const SUPABASE_URL = "https://fprppmxfxwrswlhsxeww.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwcnBwbXhmeHdyc3dsaHN4ZXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNzQ0OTMsImV4cCI6MjA3NDk1MDQ5M30.Wv918OkNZoFL6lAVkxX-IAxzibyA6qqnqFjZGqb0kSI";
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ============= KPIs =================
+// ================= KPIs =================
 async function loadKPIs() {
   const { data: negociadas } = await db
     .from("vendas")
@@ -39,7 +39,7 @@ async function loadKPIs() {
   return totalFinalizados;
 }
 
-// ============= Tendência Mensal =============
+// ================= Tendência Mensal =================
 async function loadTendencia() {
   const { data, error } = await db
     .from("vendas")
@@ -71,11 +71,51 @@ async function loadTendencia() {
   });
 }
 
-// ============= Meta x Realizado =============
-let metaChart; // variável global para recriar o gráfico
+// ================= Meta x Realizado =================
+let metaChart;
 
-// Meta x Realizado
-async function loadMeta(meta = 15000) {
+// 🔹 Buscar meta no banco
+async function getMeta() {
+  const { data, error } = await db
+    .from("meta")
+    .select("id, valor")
+    .limit(1)
+    .single();
+  if (error) {
+    console.error("Erro ao buscar meta:", error);
+    return { id: null, valor: 15000 }; // fallback
+  }
+  return data;
+}
+
+// 🔹 Atualizar meta no banco
+async function updateMeta(novoValor) {
+  const { data: existente, error: erroBusca } = await db
+    .from("meta")
+    .select("id")
+    .limit(1)
+    .single();
+
+  if (erroBusca) {
+    console.error("Erro ao verificar meta existente:", erroBusca);
+    return;
+  }
+
+  if (existente) {
+    await db
+      .from("meta")
+      .update({ valor: novoValor, atualizado_em: new Date() })
+      .eq("id", existente.id);
+  } else {
+    await db.from("meta").insert([{ valor: novoValor }]);
+  }
+}
+
+// 🔹 Carregar e exibir gráfico da meta
+async function loadMeta() {
+  const metaData = await getMeta();
+  const meta = metaData?.valor || 15000;
+
   const { data, error } = await db
     .from("vendas")
     .select("valor")
@@ -87,7 +127,7 @@ async function loadMeta(meta = 15000) {
 
   const totalRealizado = data.reduce((acc, v) => acc + Number(v.valor), 0);
 
-  // se já existir gráfico, destrói antes de recriar
+  // destruir gráfico antigo se existir
   if (metaChart) {
     metaChart.destroy();
   }
@@ -106,16 +146,21 @@ async function loadMeta(meta = 15000) {
     },
     options: { indexAxis: "y" },
   });
+
+  document.getElementById("metaInput").value = meta;
 }
 
-// Evento do botão
-document.getElementById("btnAtualizarMeta").addEventListener("click", () => {
-  const novaMeta = Number(document.getElementById("metaInput").value) || 0;
-  loadMeta(novaMeta);
-});
+// 🔹 Botão para atualizar meta
+document
+  .getElementById("btnAtualizarMeta")
+  .addEventListener("click", async () => {
+    const novaMeta = Number(document.getElementById("metaInput").value) || 0;
+    await updateMeta(novaMeta);
+    await loadMeta();
+    alert("Meta atualizada com sucesso!");
+  });
 
-
-// ============= Ticket Médio por Vendedor =============
+// ================= Ticket Médio por Vendedor =================
 async function loadTicketMedio() {
   const { data, error } = await db
     .from("vendas")
@@ -153,11 +198,9 @@ async function loadTicketMedio() {
       ],
     },
   });
-
-  return vendedores;
 }
 
-// ============= Ranking de Vendedores =============
+// ================= Ranking de Vendedores =================
 async function loadRanking() {
   const { data, error } = await db
     .from("vendas")
@@ -200,11 +243,11 @@ async function loadRanking() {
   });
 }
 
-// ============= Inicializar =============
+// ================= Inicializar =================
 (async () => {
-  const realizado = await loadKPIs();
+  await loadKPIs();
   await loadTendencia();
-  await loadMeta(15000); // meta fixa
+  await loadMeta(); // agora puxa direto do banco
   await loadTicketMedio();
   await loadRanking();
 })();
