@@ -3,6 +3,15 @@
     "development"
   ],
   "hints": {
-    "meta-charset-utf-8": "off"
+    "meta-charset-utf-8": "off",
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "text-size-adjust",
+          "-webkit-text-size-adjust"
+        ]
+      }
+    ]
   }
 }

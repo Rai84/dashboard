@@ -1,0 +1,44 @@
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- 🔹 Título padrão (pode ser substituído dinamicamente por página) -->
+  <title>Comuni Dashboard</title>
+
+  <!-- 🔹 Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="/assets/js/config.js"></script>
+
+  <!-- 🔹 Tailwind (build local) -->
+  <link rel="stylesheet" href="/assets/css/output.css">
+
+  <!-- 🔹 Fonte principal -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- 🔹 Favicon opcional -->
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
+
+  <!-- 🔹 Script de tema (dark/light) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const html = document.documentElement;
+      const temaSalvo = localStorage.getItem("tema");
+
+      if (temaSalvo === "dark") html.classList.add("dark");
+
+      // garante que o botão 🌗 (se existir) funcione
+      setTimeout(() => {
+        const btn = document.getElementById("btnTema");
+        if (btn) {
+          btn.addEventListener("click", () => {
+            html.classList.toggle("dark");
+            localStorage.setItem(
+              "tema",
+              html.classList.contains("dark") ? "dark" : "light"
+            );
+          });
+        }
+      }, 200);
+    });
+  </script>
+</head>

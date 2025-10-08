@@ -3,89 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-  <title>Comuni Dashboard</title>
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="/assets/js/config.js"></script>
-
-  <!-- Tailwind (build local) -->
-  <link rel="stylesheet" href="/assets/css/output.css">
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>🎨 Dashboard de Funcionários</title>
+  <link rel="stylesheet" href="/assets/css/output.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 </head>
 
+<body class="min-h-screen light">
 
-<body class="min-h-screen text-gray-800 transition-colors duration-300 bg-surface-light dark:bg-surface-dark dark:text-gray-100">
-
-  <header class="flex items-center justify-between p-4 text-white shadow bg-primary">
-    <h1 class="text-xl font-semibold">👨‍💼 CRUD de Funcionários</h1>
-    <nav class="flex items-center space-x-4">
-      <a href="index.html" class="transition hover:text-accent">Funcionários</a>
-      <a href="vendas.html" class="transition hover:text-accent">Vendas</a>
-      <a href="dashboard.html" class="transition hover:text-accent">Dashboard</a>
-      <button id="btnTema" class="px-3 py-2 ml-4 text-white transition rounded bg-accent hover:bg-yellow-600">
-        🌗 Tema
+  <!-- HEADER -->
+  <header class="flex items-center justify-between px-8 py-4 text-white shadow bg-primary">
+    <h1 class="text-2xl font-semibold tracking-tight">👨‍💼 Painel de Funcionários</h1>
+    <nav class="flex items-center space-x-6">
+      <a href="index.html" class="transition-colors hover:text-accent">Funcionários</a>
+      <a href="vendas.html" class="transition-colors hover:text-accent">Vendas</a>
+      <a href="dashboard.html" class="transition-colors hover:text-accent">Dashboard</a>
+      <button id="btnTema"
+        class="px-4 py-2 ml-4 font-medium text-white transition-all rounded bg-accent bg-accent-hover">
+        🌗 Alternar Tema
       </button>
     </nav>
   </header>
 
-  <main class="max-w-5xl p-6 mx-auto space-y-8">
-    <!-- Formulário -->
-    <section class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-      <h2 class="mb-4 text-lg font-semibold">Adicionar Funcionário</h2>
-      <form id="formAdd" class="flex flex-wrap gap-3">
+  <!-- MAIN -->
+  <main class="max-w-5xl p-6 mx-auto mt-10 space-y-10">
+
+    <!-- FORMULÁRIO -->
+    <section class="p-6 rounded-lg shadow bg-card">
+      <h2 class="mb-4 text-xl font-semibold text-primary">Adicionar Funcionário</h2>
+      <form id="formAdd" class="flex flex-wrap gap-4">
         <input type="text" id="nome" placeholder="Nome do Funcionário" required
-          class="flex-1 p-2 border border-gray-300 rounded dark:border-gray-700 bg-surface-light dark:bg-gray-700">
-        <label for="tipo" class="sr-only">Tipo de Funcionário</label>
+          class="flex-1 p-2 rounded border-base">
+
         <select id="tipo" required
-          class="p-2 border border-gray-300 rounded dark:border-gray-700 bg-surface-light dark:bg-gray-700" aria-label="Tipo de Funcionário">
+          class="p-2 rounded border-base min-w-[160px]" aria-label="Tipo de Funcionário">
           <option value="">-- Tipo --</option>
           <option value="vendedora">Vendedora</option>
           <option value="proposta">Proposta</option>
         </select>
+
         <button type="submit"
-          class="px-4 py-2 text-white transition rounded bg-primary hover:bg-primary-light">Adicionar</button>
+          class="px-6 py-2 font-semibold text-white transition-all rounded bg-primary bg-primary-hover">
+          + Adicionar
+        </button>
       </form>
     </section>
 
-    <!-- Lista -->
-    <section class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-      <h2 class="mb-4 text-lg font-semibold">Lista de Funcionários</h2>
-      <table id="tabela" class="w-full border-collapse">
-        <thead class="bg-gray-100 dark:bg-gray-700">
+    <!-- LISTA -->
+    <section class="p-6 rounded-lg shadow bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-primary">Lista de Funcionários</h2>
+        <span class="text-sm opacity-70">📋 Atualizado automaticamente</span>
+      </div>
+
+      <table id="tabela" class="w-full text-left border-collapse">
+        <thead class="border-b border-base">
           <tr>
-            <th class="p-2 text-left">ID</th>
-            <th class="p-2 text-left">Nome</th>
-            <th class="p-2 text-left">Tipo</th>
-            <th class="p-2 text-left">Status</th>
-            <th class="p-2 text-left">Ações</th>
+            <th class="p-2">ID</th>
+            <th class="p-2">Nome</th>
+            <th class="p-2">Tipo</th>
+            <th class="p-2">Status</th>
+            <th class="p-2 text-center">Ações</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody class="text-sm text-gray-700 divide-y divide-base dark:text-gray-200">
+          <!-- Linhas JS -->
+        </tbody>
       </table>
     </section>
   </main>
 
-  <!-- Alternância de Tema -->
-  <script>
-    const html = document.documentElement;
-    const btn = document.getElementById('btnTema');
-
-    // Carregar preferência salva
-    if (localStorage.getItem('tema') === 'dark') {
-      html.classList.add('dark');
-    }
-
-    btn.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      localStorage.setItem('tema', html.classList.contains('dark') ? 'dark' : 'light');
-    });
-  </script>
-
-  <!-- JS principal -->
+  <!-- JS -->
   <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/tema.js"></script>
 </body>
-</html>
+</htm
