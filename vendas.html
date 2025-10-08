@@ -5,11 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>📊 Vendas</title>
   <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="/assets/js/config.js"></script>
   <!-- CSS -->
-  <link rel="stylesheet" href="style.css" />
-  <!-- <link rel="stylesheet" href="reset.css" /> -->
+    <link rel="stylesheet" href="/assets/css/style.css"/>
+  <!-- Tailwind Config (tem que vir antes do CDN) -->
+    <script src="/assets/js/tailwind.config.js"></script>
+  <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
   <header>
@@ -133,6 +136,6 @@
   </main>
 
   <!-- Script -->
-  <script src="app-vendas.js"></script>
+  <script src="/assets/js/app-vendas.js"></script>
 </body>
 </html>
